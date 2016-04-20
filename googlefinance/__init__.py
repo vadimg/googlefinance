@@ -30,6 +30,16 @@ googleFinanceKeyToFullName = {
     u'pcls_fix': u'PreviousClosePrice'
 }
 
+DEFAULT_TIMEOUT = None
+_timeout = DEFAULT_TIMEOUT
+
+def setTimeout(timeoutSeconds):
+    '''
+    Sets the timeout for google finance API calls (in seconds).
+    '''
+    global _timeout
+    _timeout = timeoutSeconds
+
 def buildUrl(symbols):
     symbol_list = ','.join([symbol for symbol in symbols])
     # a deprecated but still active & correct api
@@ -37,9 +47,14 @@ def buildUrl(symbols):
         + symbol_list
 
 def request(symbols):
+    urlopenFlags = {}
+    if _timeout is not None:
+        urlopenFlags['timeout'] = _timeout
+
     url = buildUrl(symbols)
     req = Request(url)
-    resp = urlopen(req)
+    resp = urlopen(req, **urlopenFlags)
+
     # remove special symbols such as the pound symbol
     content = resp.read().decode('ascii', 'ignore').strip()
     content = content[3:]
